@@ -9,6 +9,10 @@ from dotenv import load_dotenv
 
 def load_personality():
 
+    """
+    Load personality from JSON file
+    """
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--personality', default='personality.json')
     args = parser.parse_args()
@@ -25,6 +29,10 @@ def load_personality():
 
 
 def setup_api():
+
+    """
+    Set-up OpenAI API
+    """
 
     # Set OpenAI API URL to OPENAI_API_URL environment variable
     if "OPENAI_API_URL" not in os.environ:
@@ -46,6 +54,10 @@ def setup_api():
 
 
 def __main__():
+
+    """
+    Main function
+    """
 
     load_dotenv()
     model = setup_api()
