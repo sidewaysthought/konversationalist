@@ -32,7 +32,20 @@ def load_personality(personality_file):
     return personality
 
 
+def get_user_input():
+
+    user_message = input("You: ")
+
+    return {
+        "role": "user",
+        "content": user_message
+    }
+
+
 def __main__():
+
+    conversation_history = []
+    user_message = ""
 
     # Set up OpenAI API
     load_dotenv()
@@ -45,21 +58,28 @@ def __main__():
     personality = load_personality(args.personality)
 
     # Send system prompt to OpenAI Chatcomplete API and print response
-    response = openai.ChatCompletion.create(
-        model="local",
-        messages=[
-            {
-                "role": "system",
-                "content": personality["system_prompt"]
-            },
-            {
-                "role": "user",
-                "content": "Hello."
-            }
-        ]
-    )
+    system_message = {
+        "role": "system",
+        "content": personality["system_prompt"]
+    }
+    conversation_history.append(system_message)
 
-    print(response.choices[0].message.content)
+    while True:
+        
+        # Get user input
+        user_message = get_user_input()
+        if user_message["content"] in ["exit", "\x1b"]:
+            break
+        conversation_history.append(user_message)
+
+        # Send conversation history to OpenAI Chatcomplete API and print response
+        response = openai.ChatCompletion.create(
+            model="local",
+            messages=conversation_history
+        )
+
+        print("Bot: " + response.choices[0].message.content)
+
 
 
 if __name__ == "__main__":
