@@ -34,6 +34,12 @@ def setup_api():
     Set-up OpenAI API
     """
 
+    # Response
+    api_config = {
+        "model": "",
+        "context": 0
+    }
+
     # Set OpenAI API URL to OPENAI_API_URL environment variable
     if "OPENAI_API_URL" not in os.environ:
         os.environ["OPENAI_API_URL"] = "https://api.openai.com"
@@ -48,9 +54,14 @@ def setup_api():
     if "OPENAI_MODEL" not in os.environ:
         print("Error: OPENAI_MODEL environment variable not found.")
         sys.exit(1)
-    model = os.environ["OPENAI_MODEL"]
+    api_config["model"] = os.environ["OPENAI_MODEL"]
 
-    return model
+    if "OPENAI_CONTEXT" not in os.environ:
+        print("Error: OPENAI_CONTEXT environment variable not found.")
+        sys.exit(1)
+    api_config["context"] = int(os.environ["OPENAI_CONTEXT"])
+
+    return api_config
 
 
 def __main__():
@@ -60,13 +71,14 @@ def __main__():
     """
 
     load_dotenv()
-    model = setup_api()
+    api_config = setup_api()
     personality = load_personality()
 
     # Set-up the chatbot
     chatbot = ChatAgent(
         system_msg = personality["system_prompt"],
-        api_model = model
+        api_model = api_config["model"],
+        context_size = api_config["context"]
     )
 
     while True:

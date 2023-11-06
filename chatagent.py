@@ -17,7 +17,8 @@ class ChatAgent:
         chat_model (str): OpenAI Chatcomplete API model ID    
     """
 
-    def __init__(self, role=ROLE_ASSISTANT, system_msg = "You are a helpful AI assistant.", api_model="local"):
+    def __init__(self, role=ROLE_ASSISTANT, system_msg = "You are a helpful AI assistant.", 
+            api_model="local", context_size = 0):
 
         """
         The constructor for ChatAgent class.
@@ -26,6 +27,8 @@ class ChatAgent:
         self.agent_role = role
         self.conversation = []
         self.chat_model = api_model
+        self.context_size = context_size
+        self.tokens_used = 0
 
         starting_prompt = self.make_message(ROLE_SYSTEM, system_msg)
         self.conversation.append(starting_prompt)
@@ -74,6 +77,7 @@ class ChatAgent:
         response_content = response.choices[0].message.content.strip()
         bot_reply = self.make_message(ROLE_ASSISTANT, response_content)
         self.conversation.append(bot_reply)
+        self.tokens_used += response.usage.total_tokens
 
         return response_content
 
