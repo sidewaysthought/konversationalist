@@ -1,15 +1,30 @@
-import openai
-import os
 import json
 import argparse
+import os
+import openai
 import sys
+from chatagent import ChatAgent
 from dotenv import load_dotenv
 
-ROLE_USER = "user"
-ROLE_ASSISTANT = "assistant"
-ROLE_SYSTEM = "system"
 
-def setup_openai():
+def load_personality():
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--personality', default='personality.json')
+    args = parser.parse_args()
+    personality_file = args.personality
+
+    try:
+        with open(personality_file, 'r') as f:
+            personality = json.load(f)
+    except FileNotFoundError:
+        print("Error: personality not found.")
+        sys.exit(1)
+
+    return personality
+
+
+def setup_api():
 
     # Set OpenAI API URL to OPENAI_API_URL environment variable
     if "OPENAI_API_URL" not in os.environ:
@@ -22,10 +37,6 @@ def setup_openai():
         sys.exit(1)
     openai.api_key = os.environ["OPENAI_API_KEY"]
 
-
-def get_model():
-
-    # Read Model from environment variable
     if "OPENAI_MODEL" not in os.environ:
         print("Error: OPENAI_MODEL environment variable not found.")
         sys.exit(1)
@@ -34,73 +45,27 @@ def get_model():
     return model
 
 
-def load_personality(personality_file):
-
-    try:
-        with open(personality_file, 'r') as f:
-            personality = json.load(f)
-    except FileNotFoundError:
-        print("Error: personality not found.")
-        sys.exit(1)
-
-    return personality
-
-
-def get_user_input():
-
-    user_message = input("You: ")
-
-    return {
-        "role": ROLE_USER,
-        "content": user_message
-    }
-
-
 def __main__():
 
-    conversation_history = []
-    user_message = ""
-
-    # Set up OpenAI API
     load_dotenv()
-    setup_openai()
-    chat_model = get_model()
+    model = setup_api()
+    personality = load_personality()
 
-    # Parse command-line arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--personality', default='personality.json')
-    args = parser.parse_args()
-    personality = load_personality(args.personality)
-
-    # Send system prompt to OpenAI Chatcomplete API and print response
-    system_message = {
-        "role": ROLE_SYSTEM,
-        "content": personality["system_prompt"]
-    }
-    conversation_history.append(system_message)
+    # Set-up the chatbot
+    chatbot = ChatAgent(
+        system_msg = personality["system_prompt"],
+        api_model = model
+    )
 
     while True:
 
         # Get user input
-        user_message = get_user_input()
-        if user_message["content"] in ["exit", "\x1b"]:
+        user_input = input("You: ")
+        if user_input in ["exit", "\x1b"]:
             break
-        conversation_history.append(user_message)
+        bot_response = chatbot.add_to_conversation(user_input)
 
-        # Send conversation history to OpenAI Chatcomplete API and print response
-        response = openai.ChatCompletion.create(
-            model=chat_model,
-            messages=conversation_history
-        )
-        
-        response_content = response.choices[0].message.content.strip()
-        bot_reply = {
-            "role": ROLE_ASSISTANT,
-            "content": response_content
-        }
-        conversation_history.append(bot_reply)
-
-        print("AI: " + response_content)
+        print("AI: " + bot_response)
 
 
 if __name__ == "__main__":
