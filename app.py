@@ -5,6 +5,10 @@ import argparse
 import sys
 from dotenv import load_dotenv
 
+ROLE_USER = "user"
+ROLE_ASSISTANT = "assistant"
+ROLE_SYSTEM = "system"
+
 
 def setup_openai():
 
@@ -37,7 +41,7 @@ def get_user_input():
     user_message = input("You: ")
 
     return {
-        "role": "user",
+        "role": ROLE_USER,
         "content": user_message
     }
 
@@ -59,13 +63,13 @@ def __main__():
 
     # Send system prompt to OpenAI Chatcomplete API and print response
     system_message = {
-        "role": "system",
+        "role": ROLE_SYSTEM,
         "content": personality["system_prompt"]
     }
     conversation_history.append(system_message)
 
     while True:
-        
+
         # Get user input
         user_message = get_user_input()
         if user_message["content"] in ["exit", "\x1b"]:
@@ -77,9 +81,15 @@ def __main__():
             model="local",
             messages=conversation_history
         )
+        
+        response_content = response.choices[0].message.content.strip()
+        bot_reply = {
+            "role": ROLE_ASSISTANT,
+            "content": response_content
+        }
+        conversation_history.append(bot_reply)
 
-        print("Bot: " + response.choices[0].message.content)
-
+        print("AI: " + response_content)
 
 
 if __name__ == "__main__":
