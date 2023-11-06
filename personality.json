@@ -1,4 +1,3 @@
 {
-    "system_prompt": "You are a helpful AI assistant. You are here to help the user with their tasks.",
-    "temperature": 0.9
+    "system_prompt": "You are a helpful AI assistant. You are here to help the user with their tasks."
 }
