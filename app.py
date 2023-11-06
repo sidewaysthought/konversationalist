@@ -9,7 +9,6 @@ ROLE_USER = "user"
 ROLE_ASSISTANT = "assistant"
 ROLE_SYSTEM = "system"
 
-
 def setup_openai():
 
     # Set OpenAI API URL to OPENAI_API_URL environment variable
@@ -22,6 +21,17 @@ def setup_openai():
         print("Error: OPENAI_API_KEY environment variable not found.")
         sys.exit(1)
     openai.api_key = os.environ["OPENAI_API_KEY"]
+
+
+def get_model():
+
+    # Read Model from environment variable
+    if "OPENAI_MODEL" not in os.environ:
+        print("Error: OPENAI_MODEL environment variable not found.")
+        sys.exit(1)
+    model = os.environ["OPENAI_MODEL"]
+
+    return model
 
 
 def load_personality(personality_file):
@@ -54,6 +64,7 @@ def __main__():
     # Set up OpenAI API
     load_dotenv()
     setup_openai()
+    chat_model = get_model()
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser()
@@ -78,7 +89,7 @@ def __main__():
 
         # Send conversation history to OpenAI Chatcomplete API and print response
         response = openai.ChatCompletion.create(
-            model="local",
+            model=chat_model,
             messages=conversation_history
         )
         
